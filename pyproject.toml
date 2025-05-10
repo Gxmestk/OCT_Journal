@@ -4,7 +4,10 @@ version = "0.1.0"
 description = "retinal-oct-classification"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "natsort>=8.4.0",
+    "opencv-python>=4.11.0.86",
+]
 
 [dependency-groups]
 dev = [
@@ -18,7 +21,8 @@ dev = [
 [project.scripts]
 main = "main:main"
 oct = "oct:main"
-
+ilm_pp = "preprocess_ilm:main"
+ref_csv = "create_ref_csv:main"
 
 [build-system]
 requires = [
