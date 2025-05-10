@@ -12,7 +12,8 @@ repos:
     - id: ruff           # Ruff linter
       args: [ 
         "--fix", # Automatically fix linting issues where possible (e.g., unused imports, style violations)
-        "--select=E,F,UP,B,SIM,I,RUF015", # pycodestyle (E), Pyflakes (F), pyupgrade (UP), etc.
+        "--select=ALL", # pycodestyle (E), Pyflakes (F), pyupgrade (UP), etc.
+        "--ignore=E501", # Ignore line length errors (E501)
         "--show-fixes",
         # "--unsafe-fixes"
       ]  
