@@ -6,9 +6,10 @@ repos:
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.1.11
   hooks:  
-    - id: ruff-format    # Second hook: Ruff formatter focuses only on formatting
-      args: ["--line-length=88"] # Set line length to 88 characters
-    - id: ruff           # First hook: Ruff linter
+    - id: ruff-format    # Ruff formatter focuses only on formatting
+      args: ["--line-length=88", # Set line length to 88 characters
+             "--docstring-code-line-length=60"] # Set docstring code line length to 60 characters
+    - id: ruff           # Ruff linter
       args: [ 
         "--fix", # Automatically fix linting issues where possible (e.g., unused imports, style violations)
         "--select=E,F,UP,B,SIM,I,RUF015", # pycodestyle (E), Pyflakes (F), pyupgrade (UP), etc.
