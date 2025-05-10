@@ -51,3 +51,12 @@ select = [
     "I",
     "RUF015",
 ]
+
+[tool.ruff.format]
+docstring-code-format = true
+# Format all docstring code snippets with a line length of 60.
+docstring-code-line-length = 60
+
+
+[tool.ruff.lint.pycodestyle]
+max-line-length = 88
