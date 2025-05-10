@@ -101,57 +101,6 @@ def save_process_metadata(
     return str(output_file)
 
 
-class ThresholdParams(TypedDict):
-    """Type definition for threshold parameters."""
-
-    thresh: float
-    maxval: float
-    type: int
-
-
-def threshold_wrapper(img: np.ndarray, **kwargs: ThresholdParams) -> np.ndarray:
-    """
-    Apply thresholding to an image.
-
-    Args:
-    ----
-        img: Input image
-        **kwargs: Arguments to pass to cv2.threshold
-
-    Returns:
-    -------
-        Thresholded image
-    """
-    _, thresh = cv2.threshold(img, **kwargs)
-    return thresh
-
-
-def morphology_wrapper(
-    img: np.ndarray,
-    operation: int,
-    kernel_shape: tuple[int, int],
-    kernel_type: int = cv2.MORPH_ELLIPSE,
-    iterations: int = 1,
-) -> np.ndarray:
-    """
-    Perform morphological operations on an image.
-
-    Args:
-    ----
-        img: Input image
-        operation: Morphological operation type
-        kernel_shape: Size of the structuring element
-        kernel_type: Shape of the structuring element (default: cv2.MORPH_ELLIPSE)
-        iterations: Number of times operation is applied (default: 1)
-
-    Returns:
-    -------
-        Processed image
-    """
-    kernel = cv2.getStructuringElement(kernel_type, kernel_shape)
-    return cv2.morphologyEx(img, operation, kernel, iterations=iterations)
-
-
 class ImageProcessingError(Exception):
     """Custom exception for image processing errors."""
 
