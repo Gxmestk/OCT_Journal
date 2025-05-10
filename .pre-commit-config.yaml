@@ -15,5 +15,5 @@ repos:
         "--select=ALL", # pycodestyle (E), Pyflakes (F), pyupgrade (UP), etc.
         "--ignore=E501", # Ignore line length errors (E501)
         "--show-fixes",
-        "--unsafe-fixes"
+        # "--unsafe-fixes"
       ]  
