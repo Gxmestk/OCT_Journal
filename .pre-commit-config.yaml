@@ -1,0 +1,17 @@
+# The hooks are sourced from https://github.com/astral-sh/ruff-pre-commit, 
+# which is a pre-commit-compatible wrapper for Ruff.
+# rev: v0.1.11 pins the repository to version 0.1.11 for reproducibility.
+
+repos:
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.1.11
+  hooks:
+    - id: ruff           # First hook: Ruff linter
+      args: [ 
+        "--fix", # Automatically fix linting issues where possible (e.g., unused imports, style violations)
+        "--select=E,F,UP,B,SIM,I,RUF015", # pycodestyle (E), Pyflakes (F), pyupgrade (UP), etc.
+        "--show-fixes",
+        "--unsafe-fixes"
+      ]    
+    - id: ruff-format    # Second hook: Ruff formatter focuses only on formatting
+      args: []

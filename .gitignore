@@ -1,0 +1,20 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Setuptools distribution folder
+dist/
+
+# Egg metadata
+*.egg
+*.egg-info/
+
+# Other build artifacts
+build/
+
+# Virtual environments
+.venv
+
+
+# git rm -r --cached */__pycache__  # Remove from tracking
+# git commit -m "Remove __pycache__ from repo"

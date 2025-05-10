@@ -1,0 +1,47 @@
+[project]
+name = "oct-journal"
+version = "0.1.0"
+description = "retinal-oct-classification"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "numpy>=2.2.5",
+    "pandas>=2.2.3",
+    "pre-commit>=4.2.0",
+    "pytest>=8.3.5",
+    "ruff>=0.11.9",
+]
+
+[project.scripts]
+oct = "main:main"
+
+[build-system]
+requires = [
+    "setuptools>=80.4.0", 
+    "wheel>=0.45.1"   
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_functions = "test_*"
+
+[tool.ruff.lint]
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+    "RUF015",
+]
