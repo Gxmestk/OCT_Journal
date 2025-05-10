@@ -16,7 +16,9 @@ dev = [
 ]
 
 [project.scripts]
-oct = "main:main"
+main = "main:main"
+oct = "oct:main"
+
 
 [build-system]
 requires = [
