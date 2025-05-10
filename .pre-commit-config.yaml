@@ -14,4 +14,4 @@ repos:
         # "--unsafe-fixes"
       ]    
     - id: ruff-format    # Second hook: Ruff formatter focuses only on formatting
-      args: ["--line-length = 88"] # Set line length to 88 characters
+      args: ["--line-length=88"] # Set line length to 88 characters
