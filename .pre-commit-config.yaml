@@ -13,7 +13,7 @@ repos:
       args: [ 
         "--fix", # Automatically fix linting issues where possible (e.g., unused imports, style violations)
         "--select=ALL", # pycodestyle (E), Pyflakes (F), pyupgrade (UP), etc.
-        "--ignore=E501,D203,D212", # Ignore line length errors (E501)
+        "--ignore=E501,D203,D212,PLR0913", # Ignore line length errors (E501)
         "--show-fixes",
         "--unsafe-fixes"
       ]  
