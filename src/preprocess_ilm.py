@@ -97,7 +97,7 @@ def main() -> int:
         preprocessing_for_ilm(
             folder_path=row["Folder_path"],
             filename=row["File_name"],
-            output_folder="/content/drive/MyDrive/OCT_Journal/Test_Folder",
+            output_folder="D:\OCTID_NM\Test_Folder",
             processing_settings=processing_settings,
             save_image=True,
             save_metadata=True,

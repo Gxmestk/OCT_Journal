@@ -222,7 +222,9 @@ def preprocessing_for_ilm(
         save_image: Whether to save intermediate images (default: False)
         save_metadata: Whether to save processing metadata (default: False)
     """
-    image_path = Path(folder_path) / filename
+    image_path = str(Path(folder_path) / filename)
+    image_path = image_path.replace("\\","/")
+    print(image_path)
     original_image = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
 
     if original_image is None:
