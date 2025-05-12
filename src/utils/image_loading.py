@@ -1,4 +1,5 @@
 """Module for loading and processing image dataset paths."""
+
 from __future__ import annotations
 
 import os

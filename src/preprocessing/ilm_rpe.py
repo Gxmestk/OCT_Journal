@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import contextlib
 import json
+from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Callable, TypedDict
+from typing import TYPE_CHECKING, TypedDict
 
 import cv2
 
@@ -86,7 +87,7 @@ def save_process_metadata(
     metadata = {
         "original_filename": filename,
         "processing_step": process_name,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "image_properties": ImageMetadata(
             width=image.shape[1],
             height=image.shape[0],
@@ -223,7 +224,7 @@ def preprocessing_for_ilm(
         save_metadata: Whether to save processing metadata (default: False)
     """
     image_path = str(Path(folder_path) / filename)
-    image_path = image_path.replace("\\","/")
+    image_path = image_path.replace("\\", "/")
     print(image_path)
     original_image = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
 
@@ -234,6 +235,53 @@ def preprocessing_for_ilm(
     with contextlib.suppress(ImageProcessingError):
         process_image_with_settings(
             layer="ILM",
+            filename=filename,
+            output_folder=output_folder,
+            image=original_image,
+            settings=processing_settings,
+            save_image=save_image,
+            save_metadata=save_metadata,
+        )
+
+
+def preprocessing_for_rpe(
+    folder_path: str | Path,
+    filename: str,
+    output_folder: str | Path,
+    processing_settings: dict[
+        Callable[..., np.ndarray],
+        dict[str, int | float | str]
+        | list[int | float | str]
+        | tuple[int | float | str, ...],
+    ],
+    *,
+    save_image: bool = False,
+    save_metadata: bool = False,
+) -> None:
+    """
+    Perform preprocessing pipeline for ILM layer extraction.
+
+    Args:
+    ----
+        folder_path: Directory containing input image
+        filename: Name of input image file
+        output_folder: Directory to save processed outputs
+        processing_settings: Dictionary of processing functions and their parameters
+        save_image: Whether to save intermediate images (default: False)
+        save_metadata: Whether to save processing metadata (default: False)
+    """
+    image_path = str(Path(folder_path) / filename)
+    image_path = image_path.replace("\\", "/")
+    print(image_path)
+    original_image = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
+
+    if original_image is None:
+        msg = f"Could not read image: {image_path}"
+        raise ValueError(msg)
+
+    with contextlib.suppress(ImageProcessingError):
+        process_image_with_settings(
+            layer="RPE",
             filename=filename,
             output_folder=output_folder,
             image=original_image,

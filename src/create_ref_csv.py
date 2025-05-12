@@ -1,4 +1,5 @@
 """Create reference CSV files from dataset configurations."""
+
 from __future__ import annotations
 
 import argparse
