@@ -5,6 +5,7 @@ description = "retinal-oct-classification"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "matplotlib>=3.10.3",
     "natsort>=8.4.0",
     "opencv-python>=4.11.0.86",
     "scipy>=1.15.3",
@@ -24,7 +25,7 @@ main = "main:main"
 oct = "oct:main"
 ilm_pp = "preprocess_ilm:main"
 ref_csv = "create_ref_csv:main"
-extract_ilm = "boundary_extraction_ilm:main"
+extract_ilm = "boundary_extraction.boundary_extraction:test_ilm"
 
 [build-system]
 requires = [

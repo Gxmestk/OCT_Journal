@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 from pathlib import Path
+import pandas as pd
+import cv2
 
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 import numpy as np
 from scipy.interpolate import interp1d
 
@@ -85,10 +89,10 @@ def find_reference_column(
                             y += 1
     elif line == "RPE":
         for x in range(start_x, end_x, step):
-            for y in range(mask.shape[0]):
+            for y in range(mask.shape[0]-1,-1,-1):
                 if mask[y, x] > 0:  # Found a white pixel
                     # Check if there's a thick enough white cluster
-                    if y - thickness_threshold <= mask.shape[0] and np.all(
+                    if y - thickness_threshold >= 0 and np.all(
                         mask[y : y - thickness_threshold, x] == 255
                     ):
                         return x, y
@@ -118,11 +122,8 @@ def trace_line_from_reference(
     search_offsets = generate_search_offsets(search_range)
 
     for x in range(start_x, end_x, step):
-        if not np.any(mask[x, :] > 0):  # No white pixels in this column
-            if np.any(mask[x:, :] > 0):  # Check if there are white pixels ahead
-                # x_vals.append(x)
-                # y_vals.append(y)
-                # print("kkk")
+        if not np.any(mask[:, x] > 0):  # No white pixels in this column
+            if np.any(mask[:, x:] > 0):  # Check if there are white pixels ahead
                 continue
             else:
                 break  # End of segment
@@ -148,7 +149,7 @@ def trace_line_from_reference(
                 if (
                     0 <= current_y < mask.shape[0]
                     and mask[current_y, x] > 0
-                    and (current_y == 0 or mask[x, current_y + 1] == 0)
+                    and (current_y == 0 or mask[ current_y + 1, x] == 0)
                 ):
                     x_vals.append(x)
                     y_vals.append(current_y)
@@ -171,16 +172,19 @@ def extract_line(mask, line, thickness_threshold, search_range, percent_start):
     # First try to find reference point in left segment (from 35% to start)
     ref_x, ref_y = find_reference_column(
         mask,
+        line = line,
         start_x=int(mask.shape[1] * percent_start / 100),
         end_x=-1,
         step=-1,
         thickness_threshold=thickness_threshold,
     )
 
+
     # If not found in left segment, try right segment (from 35% to end)
     if ref_x is None:
         ref_x, ref_y = find_reference_column(
             mask,
+            line = line,
             start_x=int(mask.shape[1] * percent_start / 100),
             end_x=mask.shape[1],
             step=1,
@@ -208,6 +212,7 @@ def extract_line(mask, line, thickness_threshold, search_range, percent_start):
     x_vals_left = x_vals_left[::-1]
     y_vals_left = y_vals_left[::-1]
 
+
     # Trace right segment (from ref_x + 1 to end)
     x_vals_right, y_vals_right = trace_line_from_reference(
         mask,
@@ -230,3 +235,28 @@ def extract_line(mask, line, thickness_threshold, search_range, percent_start):
         )
 
     return x_vals, y_vals
+
+
+def test_ilm():
+
+    binary_mask = cv2.imread("D:\\OCTID_NM\\Test_Folder\\NORMAL100_ILM_threshold_wrapper.png", cv2.IMREAD_GRAYSCALE)
+
+    # Assuming 'binary_mask' is your input image
+    x_coords, y_coords = extract_line(
+        mask=binary_mask,
+        line = "RPE",
+        thickness_threshold=20,  # Your x pixels thickness criteria
+        search_range=30,          # Your search space parameter
+        percent_start = 20
+    )
+
+
+    # Create figure
+    plt.figure(figsize=(10, 6))
+    plt.imshow(binary_mask)
+
+    # Plot points
+    plt.plot(x_coords, y_coords)
+
+    plt.axis('off')  # Hide axes
+    plt.show()
