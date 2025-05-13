@@ -236,9 +236,6 @@ def extract_line(mask, line, thickness_threshold, search_range, percent_start):
 
 
 def extract_ilm():
-
-
-
     for dirpath, dirnames, filenames in os.walk("D:\\OCTID_NM\\Test_Folder\\"):
         print(f"Directory: {dirpath}")
         for dirname in dirnames:
