@@ -1,9 +1,6 @@
 from boundary_extraction import *
 
 def main() -> int:
-
-
-
     # Read CSV file
     nam = pd.read_csv("reference_csv/Namsonthi_file_path.csv")
 

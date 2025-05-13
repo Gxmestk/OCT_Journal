@@ -7,6 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "natsort>=8.4.0",
     "opencv-python>=4.11.0.86",
+    "scipy>=1.15.3",
 ]
 
 [dependency-groups]
@@ -23,6 +24,7 @@ main = "main:main"
 oct = "oct:main"
 ilm_pp = "preprocess_ilm:main"
 ref_csv = "create_ref_csv:main"
+extract_ilm = "boundary_extraction_ilm:main"
 
 [build-system]
 requires = [
