@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 import pandas as pd
 import cv2
@@ -235,6 +236,21 @@ def extract_line(mask, line, thickness_threshold, search_range, percent_start):
 
 
 def extract_ilm():
+
+
+
+    for dirpath, dirnames, filenames in os.walk("D:\\OCTID_NM\\Test_Folder\\"):
+        print(f"Directory: {dirpath}")
+        for dirname in dirnames:
+            print(f"  Subdirectory: {dirname}")
+        for filename in filenames:
+            print(f"  File: {filename}")
+
+    image_path = str(Path(folder_path) / filename)
+    image_path = image_path.replace("\\", "/")
+    print(image_path)
+    original_image = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
+    filename = filename.endswith("threshold_wrapper.png")
     binary_mask = cv2.imread(
         "D:\\OCTID_NM\\Test_Folder\\NORMAL100_ILM_threshold_wrapper.png",
         cv2.IMREAD_GRAYSCALE,
