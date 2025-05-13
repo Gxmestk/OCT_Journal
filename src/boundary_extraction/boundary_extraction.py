@@ -241,43 +241,44 @@ def extract_ilm():
         for dirname in dirnames:
             print(f"  Subdirectory: {dirname}")
         for filename in filenames:
-            print(f"  File: {filename}")
+            if filename.endswith("threshold_wrapper.png"):
+                print(f"  File: {filename}")
 
-    image_path = str(Path(folder_path) / filename)
-    image_path = image_path.replace("\\", "/")
-    print(image_path)
-    original_image = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
-    filename = filename.endswith("threshold_wrapper.png")
-    binary_mask = cv2.imread(
-        "D:\\OCTID_NM\\Test_Folder\\NORMAL100_ILM_threshold_wrapper.png",
-        cv2.IMREAD_GRAYSCALE,
-    )
+    # image_path = str(Path(folder_path) / filename)
+    # image_path = image_path.replace("\\", "/")
+    # print(image_path)
+    # original_image = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
+    # filename = filename.endswith("threshold_wrapper.png")
+    # binary_mask = cv2.imread(
+    #     "D:\\OCTID_NM\\Test_Folder\\NORMAL100_ILM_threshold_wrapper.png",
+    #     cv2.IMREAD_GRAYSCALE,
+    # )
 
-    # Assuming 'binary_mask' is your input image
-    x_coords, y_coords = extract_line(
-        mask=binary_mask,
-        line="ILM",
-        thickness_threshold=20,  # Your x pixels thickness criteria
-        search_range=30,  # Your search space parameter
-        percent_start=20,
-    )
+    # # Assuming 'binary_mask' is your input image
+    # x_coords, y_coords = extract_line(
+    #     mask=binary_mask,
+    #     line="ILM",
+    #     thickness_threshold=20,  # Your x pixels thickness criteria
+    #     search_range=30,  # Your search space parameter
+    #     percent_start=20,
+    # )
 
-    # Create figure with grayscale colormap
-    plt.figure(figsize=(10, 6))
+    # # Create figure with grayscale colormap
+    # plt.figure(figsize=(10, 6))
 
-    # Display image in grayscale
-    plt.imshow(binary_mask, cmap="gray")
+    # # Display image in grayscale
+    # plt.imshow(binary_mask, cmap="gray")
 
-    # Plot points with red line (using 'r-' for red solid line)
-    plt.plot(x_coords, y_coords, "r-", linewidth=2)  # 'r-' = red line
+    # # Plot points with red line (using 'r-' for red solid line)
+    # plt.plot(x_coords, y_coords, "r-", linewidth=2)  # 'r-' = red line
 
-    plt.axis("off")  # Hide axes
+    # plt.axis("off")  # Hide axes
 
-    # Save the figure before showing it
-    save_path = "D:\\OCTID_NM\\Test_Folder\\NORMAL100_ILM_boundary.png"  # Change this to your desired path
-    plt.savefig(save_path, bbox_inches="tight", pad_inches=0, dpi=300)
+    # # Save the figure before showing it
+    # save_path = "D:\\OCTID_NM\\Test_Folder\\NORMAL100_ILM_boundary.png"  # Change this to your desired path
+    # plt.savefig(save_path, bbox_inches="tight", pad_inches=0, dpi=300)
 
-    plt.show()
+    # plt.show()
 
     # ILM_json = {
     #     "ILM_y_list": ILM_y_arr,
