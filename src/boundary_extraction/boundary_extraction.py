@@ -236,59 +236,60 @@ def extract_line(mask, line, thickness_threshold, search_range, percent_start):
 
 
 def extract_ilm():
-    for dirpath, dirnames, filenames in os.walk("D:\\OCTID_NM\\Test_Folder\\"):
-        print(f"Directory: {dirpath}")
-        for dirname in dirnames:
-            print(f"  Subdirectory: {dirname}")
-        for filename in filenames:
-            if filename.endswith("threshold_wrapper.png"):
-                print(f"  File: {filename}")
 
-    # image_path = str(Path(folder_path) / filename)
-    # image_path = image_path.replace("\\", "/")
-    # print(image_path)
-    # original_image = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
-    # filename = filename.endswith("threshold_wrapper.png")
-    # binary_mask = cv2.imread(
-    #     "D:\\OCTID_NM\\Test_Folder\\NORMAL100_ILM_threshold_wrapper.png",
-    #     cv2.IMREAD_GRAYSCALE,
-    # )
+        # Read CSV file
+    nam = pd.read_csv("reference_csv/Namsonthi_file_path.csv")
 
-    # # Assuming 'binary_mask' is your input image
-    # x_coords, y_coords = extract_line(
-    #     mask=binary_mask,
-    #     line="ILM",
-    #     thickness_threshold=20,  # Your x pixels thickness criteria
-    #     search_range=30,  # Your search space parameter
-    #     percent_start=20,
-    # )
+    # Process each image
+    for _, row in nam.iterrows():
+        preprocessing_for_ilm(
+            folder_path=row["Folder_path"],
+            filename=row["File_name"],
+            output_folder="D:\OCTID_NM\Test_Folder",
+            processing_settings=processing_settings,
+            save_image=True,
+            save_metadata=True,
+        )
 
-    # # Create figure with grayscale colormap
-    # plt.figure(figsize=(10, 6))
+    filename = filename.endswith("threshold_wrapper.png")
+    binary_mask = cv2.imread(
+        "D:\\OCTID_NM\\Test_Folder\\NORMAL100_ILM_threshold_wrapper.png",
+        cv2.IMREAD_GRAYSCALE,
+    )
 
-    # # Display image in grayscale
-    # plt.imshow(binary_mask, cmap="gray")
+    # Assuming 'binary_mask' is your input image
+    x_coords, y_coords = extract_line(
+        mask=binary_mask,
+        line="ILM",
+        thickness_threshold=20,  # Your x pixels thickness criteria
+        search_range=30,  # Your search space parameter
+        percent_start=20,
+    )
 
-    # # Plot points with red line (using 'r-' for red solid line)
-    # plt.plot(x_coords, y_coords, "r-", linewidth=2)  # 'r-' = red line
+    # Create figure with grayscale colormap
+    plt.figure(figsize=(10, 6))
 
-    # plt.axis("off")  # Hide axes
+    # Display image in grayscale
+    plt.imshow(binary_mask, cmap="gray")
 
-    # # Save the figure before showing it
-    # save_path = "D:\\OCTID_NM\\Test_Folder\\NORMAL100_ILM_boundary.png"  # Change this to your desired path
-    # plt.savefig(save_path, bbox_inches="tight", pad_inches=0, dpi=300)
+    # Plot points with red line (using 'r-' for red solid line)
+    plt.plot(x_coords, y_coords, "r-", linewidth=2)  # 'r-' = red line
 
-    # plt.show()
+    plt.axis("off")  # Hide axes
 
-    # ILM_json = {
-    #     "ILM_y_list": ILM_y_arr,
-    #     "ILM_x_list" : ILM_x_arr
-    # }
+    # Save the figure before showing it
+    save_path = "D:\\OCTID_NM\\Test_Folder\\NORMAL100_ILM_boundary.png"  # Change this to your desired path
+    plt.savefig(save_path, bbox_inches="tight", pad_inches=0, dpi=300)
 
-    # with open("/content/drive/MyDrive/OCT_conference/[Test_AB]ILM_boundary_list2.json", 'w') as f:
-    #     # indent=2 is not needed but makes the file human-readable
-    #     # if the data is nested
-    #     json.dump(ILM_json, f, indent=2)
+    ILM_json = {
+        "ILM_y_list": ILM_y_arr,
+        "ILM_x_list" : ILM_x_arr
+    }
+
+    with open("/content/drive/MyDrive/OCT_conference/[Test_AB]ILM_boundary_list2.json", 'w') as f:
+        # indent=2 is not needed but makes the file human-readable
+        # if the data is nested
+        json.dump(ILM_json, f, indent=2)
 
 
 def extract_rpe():
