@@ -8,15 +8,6 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 
-def line_extraction_for_ilm(
-    folder_path: str | Path,
-    filename: str,
-    output_folder: str | Path,
-    save_image: bool = False,
-    save_metadata: bool = False,
-) -> None:
-    return None
-
 
 def interpolate_coordinates(
     old_x: list,
@@ -68,24 +59,43 @@ def generate_search_offsets(search_range: int) -> int:
 
 
 def find_reference_column(
-    mask: np.ndarray, start_x: int, end_x: int, step: int, thickness_threshold: int
+    mask: np.ndarray,
+    line: str,
+    start_x: int,
+    end_x: int,
+    step: int,
+    thickness_threshold: int,
 ) -> (int, int):
     """
     Find a reference column that meets the thickness criteria.
     Returns the x position and the first y position of the valid white cluster.
     """
-    for x in range(start_x, end_x, step):
-        for y in range(mask.shape[1]):
-            if mask[x, y] > 0:  # Found a white pixel
-                # Check if there's a thick enough white cluster
-                if y + thickness_threshold <= mask.shape[1] and np.all(
-                    mask[x, y : y + thickness_threshold] == 255
-                ):
-                    return x, y
-                else:
-                    # Skip past this white area
-                    while y < mask.shape[1] and mask[x, y] > 0:
-                        y += 1
+    if line == "ILM":
+        for x in range(start_x, end_x, step):
+            for y in range(mask.shape[0]):
+                if mask[y, x] > 0:  # Found a white pixel
+                    # Check if there's a thick enough white cluster
+                    if y + thickness_threshold <= mask.shape[0] and np.all(
+                        mask[y : y + thickness_threshold, x] == 255
+                    ):
+                        return x, y
+                    else:
+                        # Skip past this white area
+                        while y < mask.shape[0] and mask[y, x] > 0:
+                            y += 1
+    elif line == "RPE":
+        for x in range(start_x, end_x, step):
+            for y in range(mask.shape[0]):
+                if mask[y, x] > 0:  # Found a white pixel
+                    # Check if there's a thick enough white cluster
+                    if y - thickness_threshold <= mask.shape[0] and np.all(
+                        mask[y : y - thickness_threshold, x] == 255
+                    ):
+                        return x, y
+                    else:
+                        # Skip past this white area
+                        while y < 0 and mask[y, x] > 0:
+                            y -= 1
     return x, y
 
 
@@ -117,20 +127,33 @@ def trace_line_from_reference(
             else:
                 break  # End of segment
 
-        found = False
-        for offset in search_offsets:
-            current_y = y + offset
-            # Check boundaries and top surface condition
-            if (
-                0 <= current_y < mask.shape[1]
-                and mask[x, current_y] > 0
-                and (current_y == 0 or mask[x, current_y - 1] == 0)
-            ):
-                x_vals.append(x)
-                y_vals.append(current_y)
-                y = current_y
-                found = True
-                break
+        if line == "ILM":
+            for offset in search_offsets:
+                current_y = y + offset
+                # Check boundaries and top surface condition
+                if (
+                    0 <= current_y < mask.shape[0]
+                    and mask[current_y, x] > 0
+                    and (current_y == 0 or mask[current_y - 1, x] == 0)
+                ):
+                    x_vals.append(x)
+                    y_vals.append(current_y)
+                    y = current_y
+                    break
+
+        elif line == "RPE":
+            for offset in search_offsets:
+                current_y = y + offset
+                # Check boundaries and bottom surface condition
+                if (
+                    0 <= current_y < mask.shape[0]
+                    and mask[current_y, x] > 0
+                    and (current_y == 0 or mask[x, current_y + 1] == 0)
+                ):
+                    x_vals.append(x)
+                    y_vals.append(current_y)
+                    y = current_y
+                    break
 
         # if not found:
         #     # x_vals.append(x)
@@ -144,13 +167,11 @@ def extract_line(mask, line, thickness_threshold, search_range, percent_start):
     Main function to extract the top surface line from a binary mask.
     Returns x and y coordinates of the line.
     """
-    # Transpose mask for column-wise processing
-    mask = mask.T
 
     # First try to find reference point in left segment (from 35% to start)
     ref_x, ref_y = find_reference_column(
         mask,
-        start_x=int(mask.shape[0] * percent_start / 100),
+        start_x=int(mask.shape[1] * percent_start / 100),
         end_x=-1,
         step=-1,
         thickness_threshold=thickness_threshold,
@@ -160,8 +181,8 @@ def extract_line(mask, line, thickness_threshold, search_range, percent_start):
     if ref_x is None:
         ref_x, ref_y = find_reference_column(
             mask,
-            start_x=int(mask.shape[0] * percent_start / 100),
-            end_x=mask.shape[0],
+            start_x=int(mask.shape[1] * percent_start / 100),
+            end_x=mask.shape[1],
             step=1,
             thickness_threshold=thickness_threshold,
         )
@@ -192,7 +213,7 @@ def extract_line(mask, line, thickness_threshold, search_range, percent_start):
         mask,
         line=line,
         start_x=ref_x + 1,
-        end_x=mask.shape[0],
+        end_x=mask.shape[1],
         step=1,
         initial_y=y_vals_left[-1],
         search_range=search_range,
