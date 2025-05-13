@@ -5,12 +5,11 @@ from __future__ import annotations
 from pathlib import Path
 import pandas as pd
 import cv2
-
+import json
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import numpy as np
 from scipy.interpolate import interp1d
-
 
 
 def interpolate_coordinates(
@@ -89,7 +88,7 @@ def find_reference_column(
                             y += 1
     elif line == "RPE":
         for x in range(start_x, end_x, step):
-            for y in range(mask.shape[0]-1,-1,-1):
+            for y in range(mask.shape[0] - 1, -1, -1):
                 if mask[y, x] > 0:  # Found a white pixel
                     # Check if there's a thick enough white cluster
                     if y - thickness_threshold >= 0 and np.all(
@@ -149,7 +148,7 @@ def trace_line_from_reference(
                 if (
                     0 <= current_y < mask.shape[0]
                     and mask[current_y, x] > 0
-                    and (current_y == 0 or mask[ current_y + 1, x] == 0)
+                    and (current_y == 0 or mask[current_y + 1, x] == 0)
                 ):
                     x_vals.append(x)
                     y_vals.append(current_y)
@@ -172,19 +171,18 @@ def extract_line(mask, line, thickness_threshold, search_range, percent_start):
     # First try to find reference point in left segment (from 35% to start)
     ref_x, ref_y = find_reference_column(
         mask,
-        line = line,
+        line=line,
         start_x=int(mask.shape[1] * percent_start / 100),
         end_x=-1,
         step=-1,
         thickness_threshold=thickness_threshold,
     )
 
-
     # If not found in left segment, try right segment (from 35% to end)
     if ref_x is None:
         ref_x, ref_y = find_reference_column(
             mask,
-            line = line,
+            line=line,
             start_x=int(mask.shape[1] * percent_start / 100),
             end_x=mask.shape[1],
             step=1,
@@ -212,7 +210,6 @@ def extract_line(mask, line, thickness_threshold, search_range, percent_start):
     x_vals_left = x_vals_left[::-1]
     y_vals_left = y_vals_left[::-1]
 
-
     # Trace right segment (from ref_x + 1 to end)
     x_vals_right, y_vals_right = trace_line_from_reference(
         mask,
@@ -237,19 +234,63 @@ def extract_line(mask, line, thickness_threshold, search_range, percent_start):
     return x_vals, y_vals
 
 
-def test_ilm():
-
-    binary_mask = cv2.imread("D:\\OCTID_NM\\Test_Folder\\NORMAL100_ILM_threshold_wrapper.png", cv2.IMREAD_GRAYSCALE)
+def extract_ilm():
+    binary_mask = cv2.imread(
+        "D:\\OCTID_NM\\Test_Folder\\NORMAL100_ILM_threshold_wrapper.png",
+        cv2.IMREAD_GRAYSCALE,
+    )
 
     # Assuming 'binary_mask' is your input image
     x_coords, y_coords = extract_line(
         mask=binary_mask,
-        line = "RPE",
+        line="ILM",
         thickness_threshold=20,  # Your x pixels thickness criteria
-        search_range=30,          # Your search space parameter
-        percent_start = 20
+        search_range=30,  # Your search space parameter
+        percent_start=20,
     )
 
+    # Create figure with grayscale colormap
+    plt.figure(figsize=(10, 6))
+
+    # Display image in grayscale
+    plt.imshow(binary_mask, cmap="gray")
+
+    # Plot points with red line (using 'r-' for red solid line)
+    plt.plot(x_coords, y_coords, "r-", linewidth=2)  # 'r-' = red line
+
+    plt.axis("off")  # Hide axes
+
+    # Save the figure before showing it
+    save_path = "D:\\OCTID_NM\\Test_Folder\\NORMAL100_ILM_boundary.png"  # Change this to your desired path
+    plt.savefig(save_path, bbox_inches="tight", pad_inches=0, dpi=300)
+
+    plt.show()
+
+    # ILM_json = {
+    #     "ILM_y_list": ILM_y_arr,
+    #     "ILM_x_list" : ILM_x_arr
+    # }
+
+    # with open("/content/drive/MyDrive/OCT_conference/[Test_AB]ILM_boundary_list2.json", 'w') as f:
+    #     # indent=2 is not needed but makes the file human-readable
+    #     # if the data is nested
+    #     json.dump(ILM_json, f, indent=2)
+
+
+def extract_rpe():
+    binary_mask = cv2.imread(
+        "D:\\OCTID_NM\\Test_Folder\\NORMAL100_ILM_threshold_wrapper.png",
+        cv2.IMREAD_GRAYSCALE,
+    )
+
+    # Assuming 'binary_mask' is your input image
+    x_coords, y_coords = extract_line(
+        mask=binary_mask,
+        line="RPE",
+        thickness_threshold=20,  # Your x pixels thickness criteria
+        search_range=30,  # Your search space parameter
+        percent_start=20,
+    )
 
     # Create figure
     plt.figure(figsize=(10, 6))
@@ -258,5 +299,5 @@ def test_ilm():
     # Plot points
     plt.plot(x_coords, y_coords)
 
-    plt.axis('off')  # Hide axes
+    plt.axis("off")  # Hide axes
     plt.show()
