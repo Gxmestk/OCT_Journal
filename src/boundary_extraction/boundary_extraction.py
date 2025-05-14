@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-import os
-from pathlib import Path
-import pandas as pd
-import cv2
 import json
+import os
+import cv2
 import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
 import numpy as np
+import pandas as pd
 from scipy.interpolate import interp1d
 
 
@@ -237,59 +235,67 @@ def extract_line(mask, line, thickness_threshold, search_range, percent_start):
 
 def extract_ilm():
 
-        # Read CSV file
-    nam = pd.read_csv("reference_csv/Namsonthi_file_path.csv")
+    # Read CSV file
+    dataset = pd.read_csv("reference_csv\\OCTID_file_path.csv")
 
     # Process each image
-    for _, row in nam.iterrows():
-        preprocessing_for_ilm(
-            folder_path=row["Folder_path"],
-            filename=row["File_name"],
-            output_folder="D:\OCTID_NM\Test_Folder",
-            processing_settings=processing_settings,
-            save_image=True,
-            save_metadata=True,
-        )
+    dataset_name = str(dataset["Dataset"].iloc[0])
 
-    filename = filename.endswith("threshold_wrapper.png")
-    binary_mask = cv2.imread(
-        "D:\\OCTID_NM\\Test_Folder\\NORMAL100_ILM_threshold_wrapper.png",
-        cv2.IMREAD_GRAYSCALE,
-    )
+    # Process each image
+    for _, row in dataset.iterrows():
+        
+        preprocessed_folder = str(row["Folder_path"]).replace(dataset_name, f"PreProcessed_{dataset_name}")
+        filename = row["File_name"]
 
-    # Assuming 'binary_mask' is your input image
-    x_coords, y_coords = extract_line(
-        mask=binary_mask,
-        line="ILM",
-        thickness_threshold=20,  # Your x pixels thickness criteria
-        search_range=30,  # Your search space parameter
-        percent_start=20,
-    )
+        # Strip out the file extension
+        basename, file_ext = os.path.splitext(filename)
+        print(f"{preprocessed_folder}/{basename}_ILM_morphology_wrapper.png")
 
+    binary_mask = cv2.imread("data/PreProcessed_OCTID/AMD/AMRD1_ILM_morphology_wrapper.png", cv2.IMREAD_GRAYSCALE)
     # Create figure with grayscale colormap
     plt.figure(figsize=(10, 6))
 
     # Display image in grayscale
     plt.imshow(binary_mask, cmap="gray")
+    # Show the plot
+    plt.show()
+    
 
-    # Plot points with red line (using 'r-' for red solid line)
-    plt.plot(x_coords, y_coords, "r-", linewidth=2)  # 'r-' = red line
+    #     # Assuming 'binary_mask' is your input image
+    #     x_coords, y_coords = extract_line(
+    #         mask=binary_mask,
+    #         line="ILM",
+    #         thickness_threshold=20,  # Your x pixels thickness criteria
+    #         search_range=30,  # Your search space parameter
+    #         percent_start=20,
+    #         )
 
-    plt.axis("off")  # Hide axes
 
-    # Save the figure before showing it
-    save_path = "D:\\OCTID_NM\\Test_Folder\\NORMAL100_ILM_boundary.png"  # Change this to your desired path
-    plt.savefig(save_path, bbox_inches="tight", pad_inches=0, dpi=300)
 
-    ILM_json = {
-        "ILM_y_list": ILM_y_arr,
-        "ILM_x_list" : ILM_x_arr
-    }
+    #     # Create figure with grayscale colormap
+    #     plt.figure(figsize=(10, 6))
 
-    with open("/content/drive/MyDrive/OCT_conference/[Test_AB]ILM_boundary_list2.json", 'w') as f:
-        # indent=2 is not needed but makes the file human-readable
-        # if the data is nested
-        json.dump(ILM_json, f, indent=2)
+    #     # Display image in grayscale
+    #     plt.imshow(binary_mask, cmap="gray")
+
+    #     # Plot points with red line (using 'r-' for red solid line)
+    #     plt.plot(x_coords, y_coords, "r-", linewidth=2)  # 'r-' = red line
+
+    #     plt.axis("off")  # Hide axes
+
+    #     return 
+    # # Save the figure before showing it
+    # save_path = "D:\\OCTID_NM\\Test_Folder\\NORMAL100_ILM_boundary.png"  # Change this to your desired path
+    # plt.savefig(save_path, bbox_inches="tight", pad_inches=0, dpi=300)
+
+    # ILM_json = {"ILM_y_list": ILM_y_arr, "ILM_x_list": ILM_x_arr}
+
+    # with open(
+    #     "/content/drive/MyDrive/OCT_conference/[Test_AB]ILM_boundary_list2.json", "w"
+    # ) as f:
+    #     # indent=2 is not needed but makes the file human-readable
+    #     # if the data is nested
+    #     json.dump(ILM_json, f, indent=2)
 
 
 def extract_rpe():

@@ -90,17 +90,19 @@ def main() -> int:
     }
 
     # Read CSV file
-    nam = pd.read_csv("reference_csv/Namsonthi_file_path.csv")
+    dataset = pd.read_csv("reference_csv\\OCTID_file_path.csv")
 
     # Process each image
-    for _, row in nam.iterrows():
+    dataset_name = str(dataset["Dataset"].iloc[0])
+    
+    for _, row in dataset.iterrows():
         preprocessing_for_ilm(
             folder_path=row["Folder_path"],
             filename=row["File_name"],
-            output_folder="D:\OCTID_NM\Test_Folder",
+            output_folder=str(row["Folder_path"]).replace(dataset_name, f"PreProcessed_{dataset_name}"),
             processing_settings=processing_settings,
             save_image=True,
-            save_metadata=True,
+            save_metadata=False,
         )
 
     # Parse command line arguments if needed
