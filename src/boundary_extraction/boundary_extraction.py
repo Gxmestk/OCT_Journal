@@ -11,6 +11,27 @@ import pandas as pd
 from scipy.interpolate import interp1d
 
 
+
+import json
+import re
+
+def format_json_custom(data, indent=2, current_indent=0):
+    """Recursively format JSON with newlines before every key and compact lists"""
+    if isinstance(data, dict):
+        items = []
+        for key, value in data.items():
+            formatted_value = format_json_custom(value, indent, current_indent + indent)
+            items.append(f'\n{" " * current_indent}"{key}": {formatted_value}')
+        return "{" + ",".join(items) + f'\n{" " * (current_indent - indent)}' + "}"
+    elif isinstance(data, list):
+        # Compact list formatting
+        return "[" + ", ".join(json.dumps(item) for item in data) + "]"
+    else:
+        return json.dumps(data)
+
+
+
+
 def interpolate_coordinates(
     old_x: list,
     old_y: list,
@@ -49,7 +70,7 @@ def interpolate_coordinates(
     new_y = interp_func(new_x)
     new_y = np.round(new_y).astype(int)
 
-    return new_x, new_y
+    return new_x.tolist(), new_y.tolist()
 
 
 def generate_search_offsets(search_range: int) -> int:
@@ -79,12 +100,14 @@ def find_reference_column(
                     # Check if there's a thick enough white cluster
                     if y + thickness_threshold <= mask.shape[0] and np.all(
                         mask[y : y + thickness_threshold, x] == 255
-                    ):
+                        ):
                         return x, y
                     else:
+                        break
+                        
                         # Skip past this white area
-                        while y < mask.shape[0] and mask[y, x] > 0:
-                            y += 1
+                        # while y < mask.shape[0] and mask[y, x] > 0:
+                        #     y += 1
     elif line == "RPE":
         for x in range(start_x, end_x, step):
             for y in range(mask.shape[0] - 1, -1, -1):
@@ -95,9 +118,10 @@ def find_reference_column(
                     ):
                         return x, y
                     else:
-                        # Skip past this white area
-                        while y < 0 and mask[y, x] > 0:
-                            y -= 1
+                        break
+                    #     # Skip past this white area
+                    #     while y < 0 and mask[y, x] > 0:
+                    #         y -= 1
     return x, y
 
 
@@ -154,14 +178,15 @@ def trace_line_from_reference(
                     y = current_y
                     break
 
-        # if not found:
-        #     # x_vals.append(x)
-        #     # y_vals.append(y)
-
     return x_vals, y_vals
 
 
-def extract_line(mask, line, thickness_threshold, search_range, percent_start):
+def extract_line(mask, line, thickness_threshold, search_range, percent_start,
+                output_folder: str,
+                file_name: str,
+                save_image: bool = True,
+                save_metadata: bool = False
+                ) -> (np.ndarray, np.ndarray):
     """
     Main function to extract the top surface line from a binary mask.
     Returns x and y coordinates of the line.
@@ -230,16 +255,68 @@ def extract_line(mask, line, thickness_threshold, search_range, percent_start):
             x_vals, y_vals, new_x=new_x, kind="linear", extrapolate=True
         )
 
+
+    if save_image == True :
+        # Create figure with grayscale colormap
+        plt.figure(figsize=(10, 6))
+        plt.imshow(mask,cmap="gray")
+        plt.plot(x_vals, y_vals, "r-", linewidth=2)  # 'r-' = red line
+
+        # Save the figure before showing it
+        output_folder = f"{output_folder}\\{file_name}_{line}_boundary.png"  
+        plt.savefig(output_folder, bbox_inches="tight", pad_inches=0, dpi=300)
+        plt.close()
+
+
     return x_vals, y_vals
 
 
-def extract_ilm():
+
+def fill_ILM(image: np.ndarray,
+            filename:str,
+            x_vals: list,
+            y_vals: list) -> np.ndarray:
+    
+    for i in range(len(x_vals)):
+        image[:y_vals[i] , x_vals[i]] = 0
+
+    return image
+
+
+def read_json_boundary( file_path: str, 
+                        line: str,
+                        dataset: str,
+                        image_basename: str):
+    
+    # Read the JSON file
+    with open(file_path, 'r') as f:
+        data = json.load(f)
+    
+    if image_basename in (data[f"{line}_x_list_{dataset_name}"] and data[f"{line}_y_list_{dataset_name}"]):
+        return data[f"{line}_x_list_{dataset_name}"][image_basename], data[f"{line}_x_list_{dataset_name}"][image_basename]
+
+    
+
+def extract_line(line:str):
 
     # Read CSV file
     dataset = pd.read_csv("reference_csv\\OCTID_file_path.csv")
 
     # Process each image
     dataset_name = str(dataset["Dataset"].iloc[0])
+
+    x_list_dict = {}
+    y_list_dict = {}
+
+
+    if line == "RPE":
+        x_coords, y_coords = read_json_boundary(file_path = f"data/PreProcessed_{dataset_name}/{line}_boundary_list.json", 
+                                                line = "ILM",
+                                                dataset = dataset_name,
+                                                image_basename = "AMRD1")
+        print(x_coords)
+        print(y_coords)
+        return 
 
     # Process each image
     for _, row in dataset.iterrows():
@@ -249,76 +326,36 @@ def extract_ilm():
 
         # Strip out the file extension
         basename, file_ext = os.path.splitext(filename)
-        print(f"{preprocessed_folder}/{basename}_ILM_morphology_wrapper.png")
 
-    binary_mask = cv2.imread("data/PreProcessed_OCTID/AMD/AMRD1_ILM_morphology_wrapper.png", cv2.IMREAD_GRAYSCALE)
-    # Create figure with grayscale colormap
-    plt.figure(figsize=(10, 6))
+        binary_mask = cv2.imread(f"{preprocessed_folder}/{basename}_{line}_morphology_wrapper.png", cv2.IMREAD_GRAYSCALE)
 
-    # Display image in grayscale
-    plt.imshow(binary_mask, cmap="gray")
-    # Show the plot
-    plt.show()
-    
-
-    #     # Assuming 'binary_mask' is your input image
-    #     x_coords, y_coords = extract_line(
-    #         mask=binary_mask,
-    #         line="ILM",
-    #         thickness_threshold=20,  # Your x pixels thickness criteria
-    #         search_range=30,  # Your search space parameter
-    #         percent_start=20,
-    #         )
+        # Assuming 'binary_mask' is your input image
+        x_coords, y_coords = extract_line(
+            mask=binary_mask,
+            line=line,
+            thickness_threshold= 15, 
+            search_range=20,  
+            percent_start=10,
+            output_folder = preprocessed_folder,
+            file_name = f"_{basename}",
+            save_image = True,
+            save_metadata = False
+            )
+        ILM_x_list_dict[basename] = x_coords
+        ILM_y_list_dict[basename] = y_coords
+        print(f"Finished extractng {line} for {dataset_name} {basename}")
 
 
-
-    #     # Create figure with grayscale colormap
-    #     plt.figure(figsize=(10, 6))
-
-    #     # Display image in grayscale
-    #     plt.imshow(binary_mask, cmap="gray")
-
-    #     # Plot points with red line (using 'r-' for red solid line)
-    #     plt.plot(x_coords, y_coords, "r-", linewidth=2)  # 'r-' = red line
-
-    #     plt.axis("off")  # Hide axes
-
-    #     return 
-    # # Save the figure before showing it
-    # save_path = "D:\\OCTID_NM\\Test_Folder\\NORMAL100_ILM_boundary.png"  # Change this to your desired path
-    # plt.savefig(save_path, bbox_inches="tight", pad_inches=0, dpi=300)
-
-    # ILM_json = {"ILM_y_list": ILM_y_arr, "ILM_x_list": ILM_x_arr}
-
-    # with open(
-    #     "/content/drive/MyDrive/OCT_conference/[Test_AB]ILM_boundary_list2.json", "w"
-    # ) as f:
-    #     # indent=2 is not needed but makes the file human-readable
-    #     # if the data is nested
-    #     json.dump(ILM_json, f, indent=2)
+    ILM_json = {f"{line}_x_list_{dataset_name}": x_list_dict, f"{line}_y_list_{dataset_name}": y_list_dict}
 
 
-def extract_rpe():
-    binary_mask = cv2.imread(
-        "D:\\OCTID_NM\\Test_Folder\\NORMAL100_ILM_threshold_wrapper.png",
-        cv2.IMREAD_GRAYSCALE,
-    )
+    output_path = f"data/PreProcessed_{dataset_name}/{line}_boundary_list.json"
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-    # Assuming 'binary_mask' is your input image
-    x_coords, y_coords = extract_line(
-        mask=binary_mask,
-        line="RPE",
-        thickness_threshold=20,  # Your x pixels thickness criteria
-        search_range=30,  # Your search space parameter
-        percent_start=20,
-    )
+    with open(output_path, 'w') as f:
+        formatted_json = format_json_custom(ILM_json)
+        f.write(formatted_json)
 
-    # Create figure
-    plt.figure(figsize=(10, 6))
-    plt.imshow(binary_mask)
 
-    # Plot points
-    plt.plot(x_coords, y_coords)
 
-    plt.axis("off")  # Hide axes
-    plt.show()
+
