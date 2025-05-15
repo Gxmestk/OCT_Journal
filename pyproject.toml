@@ -26,6 +26,7 @@ oct = "oct:main"
 ilm_pp = "preprocess_ilm:main"
 ref_csv = "create_ref_csv:main"
 extract_ilm = "boundary_extraction.boundary_extraction:extract_ilm"
+extract_rpe = "boundary_extraction.boundary_extraction:extract_rpe"
 
 [build-system]
 requires = [

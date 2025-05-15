@@ -261,6 +261,7 @@ def extract_line(mask, line, thickness_threshold, search_range, percent_start,
         plt.figure(figsize=(10, 6))
         plt.imshow(mask,cmap="gray")
         plt.plot(x_vals, y_vals, "r-", linewidth=2)  # 'r-' = red line
+        plt.axis("off")
 
         # Save the figure before showing it
         output_folder = f"{output_folder}\\{file_name}_{line}_boundary.png"  
@@ -272,32 +273,7 @@ def extract_line(mask, line, thickness_threshold, search_range, percent_start,
 
 
 
-def fill_ILM(image: np.ndarray,
-            filename:str,
-            x_vals: list,
-            y_vals: list) -> np.ndarray:
-    
-    for i in range(len(x_vals)):
-        image[:y_vals[i] , x_vals[i]] = 0
-
-    return image
-
-
-def read_json_boundary( file_path: str, 
-                        line: str,
-                        dataset: str,
-                        image_basename: str):
-    
-    # Read the JSON file
-    with open(file_path, 'r') as f:
-        data = json.load(f)
-    
-    if image_basename in (data[f"{line}_x_list_{dataset_name}"] and data[f"{line}_y_list_{dataset_name}"]):
-        return data[f"{line}_x_list_{dataset_name}"][image_basename], data[f"{line}_x_list_{dataset_name}"][image_basename]
-
-    
-
-def extract_line(line:str):
+def extract_boundary(line:str):
 
     # Read CSV file
     dataset = pd.read_csv("reference_csv\\OCTID_file_path.csv")
@@ -308,15 +284,6 @@ def extract_line(line:str):
     x_list_dict = {}
     y_list_dict = {}
 
-
-    if line == "RPE":
-        x_coords, y_coords = read_json_boundary(file_path = f"data/PreProcessed_{dataset_name}/{line}_boundary_list.json", 
-                                                line = "ILM",
-                                                dataset = dataset_name,
-                                                image_basename = "AMRD1")
-        print(x_coords)
-        print(y_coords)
-        return 
 
     # Process each image
     for _, row in dataset.iterrows():
@@ -333,16 +300,16 @@ def extract_line(line:str):
         x_coords, y_coords = extract_line(
             mask=binary_mask,
             line=line,
-            thickness_threshold= 15, 
-            search_range=20,  
+            thickness_threshold= int(binary_mask.shape[0]*3/100), 
+            search_range=int(binary_mask.shape[0]*3/100),  
             percent_start=10,
             output_folder = preprocessed_folder,
             file_name = f"_{basename}",
             save_image = True,
             save_metadata = False
             )
-        ILM_x_list_dict[basename] = x_coords
-        ILM_y_list_dict[basename] = y_coords
+        x_list_dict[basename] = x_coords
+        y_list_dict[basename] = y_coords
         print(f"Finished extractng {line} for {dataset_name} {basename}")
 
 
@@ -359,3 +326,9 @@ def extract_line(line:str):
 
 
 
+# boundary_extraction.py
+def extract_ilm():
+    extract_boundary("ILM")
+
+def extract_rpe():
+    extract_boundary("RPE")
