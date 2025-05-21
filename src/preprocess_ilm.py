@@ -67,49 +67,6 @@ def morphology_wrapper(
 
 
 
-def fill_ILM(image: np.ndarray,
-            filename:str,
-            x_vals: list,
-            y_vals: list) -> np.ndarray:
-    
-    for i in range(len(x_vals)):
-        image[:y_vals[i] , x_vals[i]] = 0
-
-    return image
-
-
-def read_json_boundary( file_path: str, 
-                        line: str,
-                        dataset_name: str,
-                        image_basename: str):
-    
-    # Read the JSON file
-    with open(file_path, 'r') as f:
-        data = json.load(f)
-    
-    if image_basename in (data[f"{line}_x_list_{dataset_name}"] and data[f"{line}_y_list_{dataset_name}"]):
-        return data[f"{line}_x_list_{dataset_name}"][image_basename], data[f"{line}_y_list_{dataset_name}"][image_basename]
-
-
-def preprocess_rpe():
-
-
-    # Read CSV file
-    dataset = pd.read_csv("reference_csv\\OCTID_file_path.csv")
-
-    # Process each image
-    dataset_name = str(dataset["Dataset"].iloc[0])
-
-    x_coords, y_coords = read_json_boundary(file_path = f"data/PreProcessed_{dataset_name}/ILM_boundary_list.json", 
-                                            line = "ILM",
-                                            dataset_name = dataset_name,
-                                            image_basename = "AMRD1")
-    filled_image = fill_ILM(image: np.ndarray,
-                            filename:str,
-                            x_vals: list,
-                            y_vals: list):
-    return 
-
 
 def main() -> int:
     """Preprocess ILM images."""
@@ -149,6 +106,9 @@ def main() -> int:
             save_image=True,
             save_metadata=False,
         )
+
+
+    
 
     # Parse command line arguments if needed
     parser = argparse.ArgumentParser()

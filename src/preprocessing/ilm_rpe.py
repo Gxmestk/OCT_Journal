@@ -197,6 +197,63 @@ def process_image_with_settings(
     return current_image
 
 
+
+def fill_ILM(image: np.ndarray,
+            output_folder: str | Path,
+            filename:str,
+            x_vals: list,
+            y_vals: list) -> np.ndarray:
+    
+    for i in range(len(x_vals)):
+        image[:y_vals[i] , x_vals[i]] = 0
+
+
+    if save_image:
+        save_processed_image(
+            image,
+            layer,
+            fill_ILM.__name__,
+            filename,
+            output_folder,
+        )
+    if save_metadata:
+        save_process_metadata(
+            current_image,
+            layer,
+            fill_ILM.__name__,
+            filename,
+            output_folder,
+            {"parameters": params, "info": {}},
+        )
+
+    return image
+
+
+def read_json_boundary( file_path: str, 
+                        line: str,
+                        dataset_name: str,
+                        image_basename: str):
+    
+    # Read the JSON file
+    with open(file_path, 'r') as f:
+        data = json.load(f)
+    
+    if image_basename in (data[f"{line}_x_list_{dataset_name}"] and data[f"{line}_y_list_{dataset_name}"]):
+        return data[f"{line}_x_list_{dataset_name}"][image_basename], data[f"{line}_y_list_{dataset_name}"][image_basename]
+
+
+def preprocess_rpe():
+
+
+    # Read CSV file
+    dataset = pd.read_csv("reference_csv\\OCTID_file_path.csv")
+
+    # Process each image
+    dataset_name = str(dataset["Dataset"].iloc[0])
+
+    return 
+
+
 def preprocessing_for_ilm(
     folder_path: str | Path,
     filename: str,
@@ -248,6 +305,7 @@ def preprocessing_for_rpe(
     folder_path: str | Path,
     filename: str,
     output_folder: str | Path,
+    ilm_bound_path : str | Path,
     processing_settings: dict[
         Callable[..., np.ndarray],
         dict[str, int | float | str]
@@ -272,19 +330,42 @@ def preprocessing_for_rpe(
     """
     image_path = str(Path(folder_path) / filename)
     image_path = image_path.replace("\\", "/")
-    print(image_path)
     original_image = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
 
     if original_image is None:
         msg = f"Could not read image: {image_path}"
         raise ValueError(msg)
 
+    # Strip out the file extension
+    basename, file_ext = os.path.splitext(filename)
+
+    # Read CSV file
+    dataset = pd.read_csv("reference_csv\\OCTID_file_path.csv")
+
+    # Process each image
+    dataset_name = str(dataset["Dataset"].iloc[0])
+
+    x_coords, y_coords = read_json_boundary(file_path = ilm_bound_path, 
+                                            line = "ILM",
+                                            dataset_name = dataset_name,
+                                            image_basename = basename)
+
+    filled_image = fill_ILM(image = original_image,
+                            filename = basename,
+                            x_vals = x_coords,
+                            y_vals = y_coords,
+                            save_image=save_image,
+                            save_metadata=save_metadata)
+    
+
+
+
     with contextlib.suppress(ImageProcessingError):
         process_image_with_settings(
             layer="RPE",
             filename=filename,
             output_folder=output_folder,
-            image=original_image,
+            image=filled_image,
             settings=processing_settings,
             save_image=save_image,
             save_metadata=save_metadata,
